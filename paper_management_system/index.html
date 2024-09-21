@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Management System</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Container Styles */
+        .form-container,
+        .papers-container {
+            display: none;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-container.active,
+        .papers-container.active {
+            display: block;
+        }
+
+        /* Menu Styles */
+        #menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .menu-btn {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Form Styles */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #218838;
+        }
+
+        /* Additional Button Styles */
+        #pcChairContainer button,
+        #pcMemberContainer button {
+            padding: 5px 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        /* Paper Styles */
+        .paper {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fafafa;
+        }
+    </style>
+</head>
+
+<body>
+    <!--
+        Below the data-role value determines what button will appear to which user, depending on the logon username
+        Role id : 1 -> Visitor
+        Role id : 2 -> Author
+        Role id : 3 -> Pc-chair
+        Role id : 4 -> Pc-member
+    -->
+    <div id="menu">
+        <button class="menu-btn" id="registerBtn" data-role="1">Register</button>
+        <button class="menu-btn" id="loginBtn" data-role="1 2 3 4 ">Login</button>
+        <button class="menu-btn" id="addPaperBtn" data-role="2 3 4">Add Paper</button>
+        <button class="menu-btn" id="EditPaperBtn" data-role="2 3 4">Edit Paper</button>
+        <button class="menu-btn" id="viewPapersBtn" data-role="1 2 3 4">View Papers</button>
+        <button class="menu-btn" id="paperSearch" data-role="2 3 4">Search for Papers</button>
+        <button class="menu-btn" id="PaperWithDraw" data-role="2 3 4">Paper WithDraw</button>
+        <button class="menu-btn" id="createConference" data-role="3">Create Conference</button>
+        <button class="menu-btn" id="updateConference" data-role="3">Update Conference</button>
+        <button class="menu-btn" id="searchConference" data-role="3">Search Conference</button>
+        <button class="menu-btn" id="viewConference" data-role="3">View Conference</button>
+        <button class="menu-btn" id="deleteConference" data-role="3 4">Delete Conference</button>
+        <button class="menu-btn" id="reviewerAssignment" data-role="3 4">Reviewer Assignment</button>
+        <button class="menu-btn" id="changeConferenceStatus" data-role="3 4">Change Conference Status</button>
+        <button class="menu-btn" id="paperRiview" data-role="3 4">Paper Riview</button>
+        <button class="menu-btn" id="paperStatus" data-role="3 4">Paper Status</button>
+
+
+        <!--<button class="menu-btn" id="paperRejection" data-role="3 4">Paper Rejection</button>
+        <button class="menu-btn" id="paperFinalSubmission" data-role="3 4">Paper Final Submission</button>
+        <button class="menu-btn" id="paperAcceptance" data-role="3 4">paper Acceptance</button> -->
+
+        <button class="menu-btn" id="logoutBtn" data-role="all">Logout</button>
+    </div>
+
+    <div class="form-container" id="paperSearchContainer">
+        <h2>Paper Search</h2>
+        <form id="paperSearchForm">
+            <label for="paperSearchTitle">Paper Title:</label>
+            <input type="text" id="paperSearchTitle" name="paperSearchTitle">
+            <label for="paperSearchAuthor">Paper Author:</label>
+            <input type="text" id="paperSearchAuthor" name="paperSearchAuthor">
+            <label for="paperSearchAbstract">Role:</label>
+            <input type="text" id="paperSearchAbstract" name="paperSearchAbstract">
+
+            <button type="submit">Seacrh</button>
+        </form>
+        <div id="papersListSearch"></div>
+    </div>
+
+    <div class="form-container" id="registerContainer">
+        <h2>Register</h2>
+        <form id="registerForm">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <label for="role_id">Role:</label>
+            <select id="role_id" name="role_id" required>
+                <option value="1">Visitor</option>
+                <option value="2">Author</option>
+                <option value="3">PC Chair</option>
+                <option value="4">PC Member</option>
+            </select>
+            <button type="submit">Register</button>
+        </form>
+    </div>
+
+    <div class="form-container active" id="loginContainer">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <label for="loginUsername">Username:</label>
+            <input type="text" id="loginUsername" name="loginUsername" required>
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" name="loginPassword" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <div class="form-container" id="addPaperContainer">
+        <h2>Add Paper</h2>
+        <form id="paperForm">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" required>
+            <label for="author">Author:</label>
+            <input type="text" id="author" name="author" required>
+            <label for="abstract">Abstract:</label>
+            <textarea id="abstract" name="abstract" required></textarea>
+            <label for="publication_date">Publication Date:</label>
+            <input type="date" id="publication_date" name="publication_date" required>
+            <button type="submit">Add Paper</button>
+        </form>
+    </div>
+
+    <div class="form-container" id="editPaperContainer">
+        <h2>Edit Paper</h2>
+        <form id="editPaperForm">
+            <label for="papersDropdown">Select Paper:</label>
+            <select id="papersDropdown"></select>
+            <label for="editTitle">Title:</label>
+            <input type="text" id="editTitle" name="title" required>
+            <label for="editAuthor">Author:</label>
+            <input type="text" id="editAuthor" name="author" required>
+            <label for="editAbstract">Abstract:</label>
+            <textarea id="editAbstract" name="abstract" required></textarea>
+            <label for="editPublicationDate">Publication Date:</label>
+            <input type="date" id="editPublicationDate" name="publication_date" required>
+            <button type="submit">Update Paper</button>
+        </form>
+    </div>
+
+    <div class="form-container" id="PaperWithDrawContainer">
+        <h2>Paper WithDraw</h2>
+        <form id="PaperWithDrawrForm">
+            <label for="papersDropdown2" name = "papersDropdown2" >Select Paper:</label>
+            <select id="papersDropdown2" name = "papersDropdown2"></select>
+            <button type="submit">Delete Paper</button>
+        </form>
+    </div>
+
+    <div class="papers-container" id="papersContainer">
+        <h2>Papers</h2>
+        <div id="papersList"></div>
+    </div>
+
+    <div class="papers-container" id="welcomCOntainer">
+        <h2>Welocme to Paper Management System</h2>
+
+    </div>
+
+    <div class="papers-container" id="viewConferenceContainer">
+        <h2>Conferences</h2>
+        <div id="conferenceFormElementView"></div>
+    </div>
+
+
+    <!-- Conference Form -->
+    <div id="CreateConferenceDiv" class="form-container">
+        <form id="CreateConferenceForm">
+            <input type="hidden" id="conferenceId" name="id">
+            <label for="conferenceName">Name:</label>
+            <input type="text" id="conferenceName" name="name" required><br>
+            <label for="conferenceDescription">Description:</label>
+            <textarea id="conferenceDescription" name="description" required></textarea><br>
+            <label for="conferencePcChair">PC Chair:</label>
+            <div id="pcChairContainer">
+                <select id="conferencePcChair" name="pc_chair[]" required>
+                    <option value="">Select a PC Chair</option>
+                </select>
+                <button type="button" onclick="addPcChairField()">+</button>
+            </div><br>
+            <label for="conferencePaperId">Paper ID:</label>
+            <div id="PaperConferenceContainer">
+            <select id="conferencePaperId" name="paper_id[]" required>
+                <option value="">Select a paper</option>
+            </select><br>
+            <button type="button" onclick="addPaperField()">+</button>
+            </div>
+            <label for="conferencePcMember">PC Member:</label>
+            <div id="pcMemberContainer">
+                <select id="conferencePcMember" name="pc_member[]" required>
+                    <option value="">Select a PC Member</option>
+                </select>
+                <button type="button" onclick="addPcMemberField()">+</button>
+            </div><br>
+            <label for="conferenceStatus">Status:</label>
+            <input type="text" id="conferenceStatus" name="status" value = "SUBMISSION" required><br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <!-- Conference update Form -->
+    <div id="conferenceUpdateDiv" class="form-container">
+        <h2>Update Conference</h2>
+        <form id="updateConferenceForm">
+            <label for="conferenceDropdown">Select Conference:</label>
+            <select id="conferenceDropdown">
+                <!-- Options will be populated dynamically -->
+            </select><br>
+            <input type="hidden" id="conferenceUpdateName" name="conferenceUpdateName">
+            <input type="hidden" id="conferenceId" name="id">
+
+            <label for="updateDescription">Description:</label>
+            <textarea id="updateDescription" name="description" required></textarea><br>
+    
+            <label for="updatePc_chair">PC Chair:</label>
+            <div id="pcChairContainerForUpdate">
+                <select id="updatePc_chair" name="pc_chair[]" required>
+                    <!-- PC Chair options will be dynamically populated -->
+                </select>
+                <button type="button" onclick="addPcChairFieldForUpdate()">+</button>
+            </div><br>
+    
+            <label for="updatePaper_id">Paper Title:</label>
+            <div id="PaperContainerForUpdate">
+            <select id="updatePaper_id" name="paper_id" required>
+                <!-- Paper options will be dynamically populated -->
+            </select><br>
+            <button type="button" onclick="addPaperFieldForUpdate()">+</button>
+        </div>
+            <label for="conferencePcMember">PC Member:</label>
+            <div id="pcMemberContainerForUpdate">
+                <select id="updatePc_member" name="pc_member[]" required>
+                    <!-- PC Member options will be dynamically populated -->
+                </select>
+                <button type="button" onclick="addPcMemberFieldForUpdate()">+</button>
+            </div><br>
+    
+            <label for="conferenceStatus">Status:</label>
+            <input type="text" id="updateStatus" name="status" required><br>
+    
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    
+    <!-- Search Conference Form -->
+<div id="searchConferenceContainer" class="form-container">
+    <h2>Search Conference</h2>
+    <form id="searchConferenceForm">
+        <label for="conferenceIdSearch">Conference ID:</label>
+        <select id="conferenceIdSearch">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        <!--<input type="text" id="conferenceId" name="conferenceId" required> -->
+        <button type="submit">Search</button>
+    </form>
+    <div id="searchResult" class="search-result"></div>
+</div>
+
+
+<div class="form-container" id="deleteConferenceContainer">
+    <h2>Delete Conference</h2>
+    <form id="conferenceFormDelete">
+        <label for="conferenceDropdown2" name = "conferenceDropdown2" >Select Conference:</label>
+        <select id="conferenceDropdown2" name = "conferenceDropdown2"></select>
+        <button type="submit">Delete Conference</button>
+    </form>
+</div>
+
+<!-- Change conference status-->
+<div id="changeConferenceStatusContainer" class="form-container">
+    <h2>Change Conference Status</h2>
+    <form id="changeConferenceStatusForm">
+        <label for="conferenceIdForChangeConferenceStatus" name = "conferenceIdForChangeConferenceStatus">Conference ID:</label>
+        <select id="conferenceIdForChangeConferenceStatus" name = "conferenceIdForChangeConferenceStatus">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        
+        <!-- papers of the conference-->
+        <label for="conferenceStatusForChangeConferenceStatus">Status:</label>
+        <select id="conferenceStatusForChangeConferenceStatus1" name = "conferenceStatusForChangeConferenceStatus1"></select>
+
+        <!--<input type = "text" id="conferenceStatusForChangeConferenceStatus" name = "conferenceStatusForChangeConferenceStatus"> -->
+            <!-- Options will be populated dynamically --><br>
+
+        <button type="submit">Change Status</button>
+    </form>
+</div>
+
+<!-- rewierAssignment form-->
+<div id="rewierAssignmentContainer" class="form-container">
+    <h2>Reviewer Assignment</h2>
+    <form id="rewierAssignmentForm">
+        <label for="conferenceIdForReviewerAssignment" name = "conferenceIdForReviewerAssignment">Conference ID:</label>
+        <select id="conferenceIdForReviewerAssignment" name = "conferenceIdForReviewerAssignment">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        
+        <!-- papers of the conference-->
+        <label for="paper_id_for_reviewer_assignment">Paper ID:</label>
+        <select id="paper_id_for_reviewer_assignment">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        <!-- pc members of the conference-->
+        <label for="pc_member_for_reviewer_assignment">pc member ID:</label>
+        <select id="pc_member_for_reviewer_assignment">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        <button type="submit">Assign</button>
+    </form>
+</div>
+
+<!-- paperRiview form-->
+<div id="paperRiviewContainer" class="form-container">
+    <h2>Reviewer Assignment</h2>
+    <form id="paperRiviewForm">
+        <label for="conferenceIdForpaperRiview" name = "conferenceIdForpaperRiview">Conference ID:</label>
+        <select id="conferenceIdForpaperRiview" name = "conferenceIdForpaperRiview">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        
+        <!-- papers of the conference-->
+        <label for="paper_id_for_paperRiview">Paper ID:</label>
+        <select id="paper_id_for_paperRiview" name = "paper_id_for_paperRiview">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        <!-- pc members of the conference-->
+        <label for="pc_member_for_paperRiview">pc member ID:</label>
+        <select id="pc_member_for_paperRiview" name = "pc_member_for_paperRiview">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        <label for="review_score">review score:</label><br>
+        <input type = "text" id="review_score" name = "review_score"><br>
+        <label for="review_justification">review justification:</label><br>
+        <input type = "text" id="review_justification" name = "review_justification"><br>
+
+        <button type="submit">Review</button>
+    </form>
+</div>
+
+
+<!-- paperAproval form-->
+<div id="paperApprovalContainer" class="form-container">
+    <h2>Change Paper Status </h2>
+    <form id="paperApprovalForm">
+        <label for="conferenceIdForpaperApproval" name = "conferenceIdForpaperApproval">Conference ID:</label>
+        <select id="conferenceIdForpaperApproval" name = "conferenceIdForpaperApproval">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        
+        <!-- papers of the conference-->
+        <label for="paper_id_for_paperApproval">Paper ID:</label>
+        <select id="paper_id_for_paperApproval" name = "paper_id_for_paperApproval">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        <!-- pc members of the conference-->
+        <label for="pc_member_for_paperApproval">pc member ID:</label>
+        <select id="pc_member_for_paperApproval" name = "pc_member_for_paperApproval">
+            <!-- Options will be populated dynamically -->
+        </select><br>
+        <!-- Set Status of the paper-->
+        <label for="setStatus">Set the paper status:</label>
+        <select id="setStatus" name = "setStatus">
+            <option value="Aprroved">Aprroved</option>
+            <option value="Rejected">Rejected</option>   
+            <option value="Accepted">Accepted</option>
+            <option value="FinalSubmission">Final Submission</option>               
+ </select><br>
+
+        <button type="submit">Approve</button>
+    </form>
+</div>
+
+    <script src="scripts.js"></script>
+<script>
+
+         // Function to add additional Papers dropdowns
+function addPaperField() {
+    const container = document.getElementById('PaperConferenceContainer');
+    const newSelect = document.createElement('select');
+    newSelect.name = 'paper_id[]';
+    newSelect.required = true;
+
+    // Copy options from the first dropdown
+    const firstSelect = document.getElementById('conferencePaperId');
+    for (let i = 0; i < firstSelect.options.length; i++) {
+        newSelect.add(new Option(firstSelect.options[i].text, firstSelect.options[i].value));
+    }
+
+    container.insertBefore(newSelect, container.children[container.children.length - 1]);
+}
+
+     // Function to add additional PC Chair dropdowns
+function addPcChairField() {
+    const container = document.getElementById('pcChairContainer');
+    const newSelect = document.createElement('select');
+    newSelect.name = 'pc_chair[]';
+    newSelect.required = true;
+
+    // Copy options from the first dropdown
+    const firstSelect = document.getElementById('conferencePcChair');
+    for (let i = 0; i < firstSelect.options.length; i++) {
+        newSelect.add(new Option(firstSelect.options[i].text, firstSelect.options[i].value));
+    }
+
+    container.insertBefore(newSelect, container.children[container.children.length - 1]);
+}
+
+// Function to add additional PC Member dropdowns
+function addPcMemberField() {
+    const container = document.getElementById('pcMemberContainer');
+    const newSelect = document.createElement('select');
+    newSelect.name = 'pc_member[]';
+    newSelect.required = true;
+
+    // Copy options from the first dropdown
+    const firstSelect = document.getElementById('conferencePcMember');
+    for (let i = 0; i < firstSelect.options.length; i++) {
+        newSelect.add(new Option(firstSelect.options[i].text, firstSelect.options[i].value));
+    }
+
+    container.insertBefore(newSelect, container.children[container.children.length - 1]);
+}
+
+
+//------- update form functions --------------------//
+//function to fetch all available pc_chairs when + button is pressed
+function addPcChairFieldForUpdate() {
+    const container = document.getElementById('pcChairContainerForUpdate');
+    const newSelect = document.createElement('select');
+    newSelect.name = 'pc_chair[]';
+    newSelect.required = true;
+    //fetchPc_chairs_for_update_conf();
+    const url = `http://localhost/paper_management_system/api/users/fetch_pc_chairs.php`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const pcChairDropdown = document.getElementById('updatePc_chair');
+                    data.records.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id; 
+                        option.textContent = user.username;
+                        // Add option to PC Chair dropdown
+                        newSelect.appendChild(option.cloneNode(true));
+                    });
+                })
+                .catch(error => console.error('Error fetching users:', error));
+    container.insertBefore(newSelect, container.children[container.children.length - 1]);
+}
+
+// Function to add additional PC Member dropdowns
+function addPcMemberFieldForUpdate() {
+    const container = document.getElementById('pcMemberContainerForUpdate');
+    const newSelect = document.createElement('select');
+    newSelect.name = 'pc_member[]';
+    newSelect.required = true;
+
+    // Copy options from the first dropdown
+    const url = `http://localhost/paper_management_system/api/users/fetch_pc_members.php`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const pcChairDropdown = document.getElementById('updatePc_chair');
+                    data.records.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id; 
+                        option.textContent = user.username;
+                        // Add option to PC Chair dropdown
+                        newSelect.appendChild(option.cloneNode(true));
+                    });
+                })
+                .catch(error => console.error('Error fetching users:', error));
+    container.insertBefore(newSelect, container.children[container.children.length - 1]);
+}
+
+// Function to add additional papers to a conference
+function addPaperFieldForUpdate() {
+    const container = document.getElementById('PaperContainerForUpdate');
+    const newSelect = document.createElement('select');
+    newSelect.name = 'paper_id[]';
+    newSelect.required = true;
+
+    // Copy options from the first dropdown
+    const url = `http://localhost/paper_management_system/api/papers/read.php`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const pcChairDropdown = document.getElementById('updatePaper_id');
+                    data.records.forEach(paper => {
+                        const option = document.createElement('option');
+                        option.value = paper.id; 
+                        option.textContent = paper.title;
+                        // Add option to PC Chair dropdown
+                        newSelect.appendChild(option.cloneNode(true));
+                    });
+                })
+                .catch(error => console.error('Error fetching papers:', error));
+    container.insertBefore(newSelect, container.children[container.children.length - 1]);
+}
+
+//-------- end of update form functions ------//
+</script>
+</body>
+</html>
